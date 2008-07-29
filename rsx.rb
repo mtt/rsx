@@ -8,6 +8,12 @@
 require 'curses'
 include Curses
 
+def debug(c)
+  setpos(lines/2,cols/2)
+  addstr(c.to_s)
+  refresh
+  sleep(1)
+end
 #lines(y-axis) cols(x-axis)
 
 class RSX
@@ -55,6 +61,17 @@ class RSX
 
     def subs
       @subs ||= ::Dir["#{@path}/*"]
+    end
+
+    #Checks line assets for all open subdirectories
+    def total_subs(assets)
+      subs.inject(0) do |total, sub|
+        line_asset = assets.detect {|asset| asset.path == sub}
+        if line_asset.is_a?(RSX::Dir) && line_asset.open?
+          total += line_asset.total_subs(assets)  
+        end
+        total += 1
+      end
     end
     
     def has_subs?
@@ -124,7 +141,7 @@ class RSX
       assets = delete_lines_under(dir)
 
       if dir.open?
-        assets -= assets[0..dir.subs.size-1]
+        assets -= assets[0..dir.total_subs(assets)-1]
       else
         insert_new_directory_assets(dir)
       end
@@ -135,12 +152,6 @@ class RSX
     elsif (file = over_file?)
       write_to_file_and_exit(file)
     end
-  end
-
-  def debug(c)
-    @top,@left = 0,0
-    addstr(c.to_s)
-    draw
   end
 
   def draw
