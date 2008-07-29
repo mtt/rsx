@@ -43,16 +43,36 @@ class RSX
 
   class Dir < File
     
+    def initialize(path,top,left)
+      super
+      @open = false
+      @icon = has_subs? ? '+' : '0' 
+    end
+
     def subs
-      ::Dir["#{@path}/*"]
+      @subs ||= ::Dir["#{@path}/*"]
     end
     
     def has_subs?
       !subs.empty?
     end
+  
+    def open?
+      @open
+    end
+
+    def open!
+      @icon = '-'
+      @open = true
+    end
+
+    def close!
+      @icon = '+'
+      @open = false
+    end
 
     def name
-      has_subs? ? "+ #{@name}" : "- #{@name}"
+      [@icon, @name].join(' ')
     end
   end
 
@@ -84,17 +104,26 @@ class RSX
     @left += 1
   end
 
+  
   def enter
     if (dir = over_directory?)
-      write_go_file_and_exit(dir) if over_directory_text?(dir)
+      write_to_file_and_exit(dir) if over_directory_text?(dir)
       return unless dir.has_subs?
       tmp_top,tmp_left = @top,@left
-      assets = delete_lines_under(dir)
-      insert_new_directory_assets(dir)
-      add_assets_to_end_of_line(assets)
+
+      if dir.open?
+        assets = delete_lines_under(dir)
+        dir.close!
+      else
+        assets = delete_lines_under(dir)
+        insert_new_directory_assets(dir)
+        add_assets_to_end_of_line(assets)
+        dir.open!
+      end
+      update_dir_line(dir)
       @top,@left = tmp_top,tmp_left
     elsif (file = over_file?)
-      write_go_file_and_exit(file)
+      write_to_file_and_exit(file)
     end
   end
 
@@ -158,10 +187,15 @@ class RSX
       @top == dir.top && @left >= dir.left + 2
     end
 
-    def write_go_file_and_exit(dir) 
+    def write_to_file_and_exit(dir) 
       ::File.open(@@tmp_file,"w") {|f| f << ::File.expand_path(dir.path) }
       `kill -s HUP #{Process.ppid}`
       exit
+    end
+
+    def update_dir_line(dir)
+      setpos(dir.top,dir.left)
+      addstr(dir.name)
     end
     
     def delete_lines_under(dir)
@@ -210,9 +244,9 @@ class RSX
 end
 
 
+if __FILE__ == $0
+
 init_screen
-
-
 begin
   crmode
   noecho 
@@ -236,4 +270,6 @@ begin
 
 ensure
   close_screen
+end
+
 end
