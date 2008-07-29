@@ -39,6 +39,10 @@ class RSX
     def left_max
       @left + name.length
     end
+
+    def ==(other)
+      @path == other.path
+    end
   end
 
   class Dir < File
@@ -113,6 +117,8 @@ class RSX
 
       if dir.open?
         assets = delete_lines_under(dir)
+        assets -= assets[0..dir.subs.size-1]
+        add_assets_to_end_of_line(assets)
         dir.close!
       else
         assets = delete_lines_under(dir)
@@ -223,6 +229,12 @@ class RSX
         end
         addstr(current.name)
       end     
+    end
+
+    def remove_assets(options={})
+      from = options[:from]
+      to   = options[:to]
+      @line_assets -= @line_assets[from..to]     
     end
 
     def add_assets_to_end_of_line(assets)
