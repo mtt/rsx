@@ -32,10 +32,11 @@ class RSX
       @name = ::File.basename(path)
       @top  =  top
       @left = left
+      @icon = 'X'
     end
 
     def name
-      "X #{@name}"
+      [@icon, @name].join(' ')
     end
 
     def left_min
@@ -90,10 +91,6 @@ class RSX
     def close!
       @icon = '+'
       @open = false
-    end
-
-    def name
-      [@icon, @name].join(' ')
     end
 
     #Changes open status and updates icon
