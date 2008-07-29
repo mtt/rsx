@@ -78,6 +78,13 @@ class RSX
     def name
       [@icon, @name].join(' ')
     end
+
+    #Changes open status and updates icon
+    def toggle_open!
+      open? ? close! : open!
+      setpos(top,left)
+      addstr(name)
+    end
   end
 
   def initialize
@@ -114,19 +121,16 @@ class RSX
       write_to_file_and_exit(dir) if over_directory_text?(dir)
       return unless dir.has_subs?
       tmp_top,tmp_left = @top,@left
+      assets = delete_lines_under(dir)
 
       if dir.open?
-        assets = delete_lines_under(dir)
         assets -= assets[0..dir.subs.size-1]
-        add_assets_to_end_of_line(assets)
-        dir.close!
       else
-        assets = delete_lines_under(dir)
         insert_new_directory_assets(dir)
-        add_assets_to_end_of_line(assets)
-        dir.open!
       end
-      update_dir_line(dir)
+
+      add_assets_to_end_of_line(assets)
+      dir.toggle_open!
       @top,@left = tmp_top,tmp_left
     elsif (file = over_file?)
       write_to_file_and_exit(file)
