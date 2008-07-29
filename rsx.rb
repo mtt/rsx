@@ -253,12 +253,6 @@ class RSX
       end
     end
 
-    def debug(msg)
-      setpos(lines/2,cols/2)
-      addstr(msg)
-      refresh
-      sleep(1)
-    end
 end
 
 
