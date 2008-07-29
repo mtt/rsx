@@ -243,12 +243,6 @@ class RSX
       end     
     end
 
-    def remove_assets(options={})
-      from = options[:from]
-      to   = options[:to]
-      @line_assets -= @line_assets[from..to]     
-    end
-
     def add_assets_to_end_of_line(assets)
       assets.each do |asset|
         @top += 1
